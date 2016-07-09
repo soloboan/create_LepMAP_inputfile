@@ -5,7 +5,7 @@ Note:: The script can handle multi-generation data with overlapping generations.
 
 There are two script, one for running directly in R (both windows and linux) and the other for running it as a command line script 
 A)	createLepMapinpute_win3264.R     --- running directly in R
-B)	createLepMapinpute.R                        --- running on linux as command line script
+B)	createLepMapinpute.R             --- running on linux as command line script
 
 The script requires 3 Arguments
   1.pedfaminfo     == The fam file from PLINK this file can be generated with –-make-bed and should contain the pedigree information 
