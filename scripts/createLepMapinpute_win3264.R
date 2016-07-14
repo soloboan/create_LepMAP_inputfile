@@ -1,6 +1,6 @@
 createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   cat('\n')
-  pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
+  pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F,colClasses=rep('character',6))
   cat('.... FAM file with pedigree information imported .... \n')
   
   colnames(pedi) <- c('FIID','IID','Sire','Dam','Sex','Pheno')
@@ -84,7 +84,7 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   cat('.... importing genotype data (PLINK ped file format) .... \n')
   genodata <- read.table(paste(genoplinkped),stringsAsFactors = F)
   cat('.... Genotypes (PLINK ped file format) imported .... \n')
-  genoiid <- data.frame(IID=genodata[,1]); genoiid$nr <- 1:nrow(genoiid)
+  genoiid <- data.frame(IID=genodata[,2]); genoiid$nr <- 1:nrow(genoiid)
   
   cat('\n')
   cat('.... Preparing LepMAP file format .... \n')
