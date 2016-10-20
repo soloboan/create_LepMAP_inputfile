@@ -1,6 +1,6 @@
 createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   cat('\n')
-  pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F,colClasses=rep('character',6))
+  pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
   cat('.... FAM file with pedigree information imported .... \n')
   
   colnames(pedi) <- c('FIID','IID','Sire','Dam','Sex','Pheno')
@@ -34,16 +34,23 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   
   offsprings <- pedi[which(pedi$Sire!=0 & pedi$Dam!=0),]
   sires <- sort(unique(offsprings$Sire)); dams <- sort(unique(offsprings$Dam))
-  
   offsprings$famID <-  paste(offsprings$Sire,'><',offsprings$Dam,sep='')
+  
+  
   famILY <- data.frame(FSFAM=sort(table(offsprings$famID)))
+  famILY <- data.frame(FSFAM=famILY[which(famILY$FSFAM>=5),])
   famILY$Sire <- paste('S000',1:nrow(famILY),sep='')
   famILY$Dam <- paste('D000',1:nrow(famILY),sep='')
   famILY$famID <- rownames(famILY)
   famILY$famIDnr <- 1:nrow(famILY)
+  famILY$sireL <- apply(data.frame(famILY$famID),1,function(x)unlist(strsplit(x,split='><'))[1])
+  famILY$damL <- apply(data.frame(famILY$famID),1,function(x)unlist(strsplit(x,split='><'))[2])
+  
+  offsprings <- merge(offsprings,data.frame(famILY$famID),by.x='famID',by.y=1)
   
   offsprings.ped <- matrix(0,nrow=nrow(offsprings),ncol=8)
   colnames(offsprings.ped) <- c('FIID','IID','Sire','Dam','Sex','oldSire','oldDAM','oldIID')
+  
   for(i in 1:nrow(offsprings)){
     offsprings.ped[i,'IID'] <- as.vector(offsprings[i,'IID'])
     offsprings.ped[i,'Sex'] <- offsprings[i,'Sex']
@@ -78,13 +85,33 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   
   parentoffsring <- rbind.data.frame(parent.ped,offsprings.ped[,c(1:5,8)])
   parentoffsring <- parentoffsring[order(as.numeric(as.vector(parentoffsring$FIID))),]
-  
+  IIDs <- data.frame(IID=unique(parentoffsring$oldIID))
   cat('.... Data editing on FAM (pedigree information) done .... \n')
   
   cat('.... importing genotype data (PLINK ped file format) .... \n')
   genodata <- read.table(paste(genoplinkped),stringsAsFactors = F)
+
   cat('.... Genotypes (PLINK ped file format) imported .... \n')
   genoiid <- data.frame(IID=genodata[,2]); genoiid$nr <- 1:nrow(genoiid)
+  
+  genodata <- merge(IIDs,genodata,by.x=1,by.y=2)
+  genoiid <- merge(genoiid,IIDs,by.x=1,by.y=1)
+  
+  ### check for familes with both parents missing
+  exclfam <- data.frame(famExcl=character())
+  for (s in as.vector(unique(parentoffsring$FIID))){
+    famgeno <- parentoffsring[which(parentoffsring$FIID==s),]
+    famgeno <- famgeno[which(famgeno$Sire==0 & famgeno$Dam==0),]
+    famgeno <- merge(famgeno,genoiid,by.x='oldIID',by.y=1)
+    if(nrow(famgeno)==0){
+      exclfam <- rbind.data.frame(exclfam,data.frame(famExcl=s),stringsAsFactors=F)
+    }
+  }
+  
+  if(nrow(exclfam)>0){
+    parentoffsring <- parentoffsring[ ! parentoffsring$FIID %in% exclfam$famExcl,]
+  }
+  #######
   
   cat('\n')
   cat('.... Preparing LepMAP file format .... \n')
@@ -109,20 +136,35 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
       genofile[m,3] <- as.vector(parentoffsring[m,3])
       genofile[m,4] <- as.vector(parentoffsring[m,4])
       genofile[m,5] <- as.vector(parentoffsring[m,5])
-      genofile[m,7:ncol(genofile)] <- genodata[anim.dat$nr,7:ncol(genofile)]
+      genos <- as.vector(genodata[which(as.vector(genodata[,1])==as.vector(anim.dat$IID)),7:ncol(genodata)])
+      genofile[m,7:ncol(genofile)] <- as.vector(t(genos))
     }
     if(m %% iterchecks.anim==0){
       cat(paste('-- now at animal ... ',m,' ... out of ... ',nrow(parentoffsring),sep=''),' \n')
     }
   }
   cat('\n')
+  
   cat('.... LepMAP file format done and writing data to disk .... \n')
   
   write.table(genofile,paste(outname,'.linkage',sep=''),quote=F,col.names=F,row.names=F)
   write.table(parentoffsring,paste(outname,'.oldids',sep=''),quote=F,col.names=T,row.names=F)
   
+  cat('\n.... Basic data structure info .... \n')
+  numberoffam <- length(unique(genofile[,1]))
+  cat('\nNumber of full-sib familes == ',numberoffam,'\n')
+  numberofoffperfam <- table(genofile[,1])-2
+  cat('summary of familes \n')
+  cat('Min -',min(numberofoffperfam),'\n')
+  cat('Max -',max(numberofoffperfam),'\n')
+  cat('Mean -',round(mean(numberofoffperfam),1),'\n')
+  cat('Median -',round(median(numberofoffperfam),1),'\n')
+  breaks=round(numberoffam/10,0)
+  hist(numberofoffperfam,breaks=breaks,col='cyan4',xlab='number of animals per family')
+  
+  cat('\n')
   cat('.... Completed enjoy LepMAPing .... \n')
-  cat('\n\n')
+  cat('\n')
   
   cat('@--------------------------------------------------------@\n')
   cat('@                                                        @\n')
@@ -130,4 +172,3 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,outname){
   cat('@               please report bugs to soloboan@yahoo.com @\n')
   cat('@--------------------------------------------------------@\n')
 }
-
