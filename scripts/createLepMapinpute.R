@@ -13,7 +13,7 @@ if("help" %in% args){
       1.pedfaminfo     == The fam file from PLINK
       2.genoplinkped   == The genotype data in PLINK ped format
       3.minfamsize     == minimum family size
-      3.outname        == The output file name (only prefix)
+      4.outname        == The output file name (only prefix)
       
       how to run the program
       Example: ./createLepMapinpute geno.fam geno.ped outlepmap
@@ -25,6 +25,7 @@ if("help" %in% args){
 }
 
 createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsize=args[3],outname=args[4]){
+  timedatstr <- paste('... started ... ',date(),sep='')
   cat('\n')
   minfamsize=7
   pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
@@ -197,7 +198,9 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsiz
   cat('\n')
   cat('.... Completed enjoy LepMAPing .... \n')
   cat('\n')
-  
+
+  timedatend <- paste('... started ... ',date(),sep='')
+  cat(timedatstr,'\n',timedatend,'\n\n')
   cat('@--------------------------------------------------------@\n')
   cat('@                                                        @\n')
   cat('@                Created by S.A. Boison ::: May 10, 2016 @\n')

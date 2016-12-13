@@ -35,8 +35,8 @@ Note that if the genotype file and the total number of animal is large, then it 
 
 Benchmarking :: On a window 64bit - 3.60GHz – intel i7, 16GB ram and an SSD harddisk, it takes about 20mins to run dataset of 3000 animal and 10,000 markers. But you can always split dataset into chunks (eg. Chromosome) and supply to the file to the script.  
 
-### Example files :: There are 4 Example files attached 
-- Example 2 – “Ex2_10K.fam + Ex2_10K.ped “ –  
+### Example files
+ - Files ==> “Ex2_10K.fam + Ex2_10K.ped “ -
  A 10,000 marker panel with 2,500 genotype animals comparing two (2) generations, 
 the mating ratio was 1:4 in each generation. Thus the last generation offspring are have their grandparent genotyped.  
 After running the script 3050 animal are generated with genotypes.  

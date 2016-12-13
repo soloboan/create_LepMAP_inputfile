@@ -1,4 +1,5 @@
 createLepMapinpute <- function(pedfaminfo,genoplinkped,minfamsize=7,outname){
+  timedatstr <- paste('... started ... ',date(),sep='')
   cat('\n')
   pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
   cat('.... FAM file with pedigree information imported .... \n')
@@ -170,7 +171,8 @@ createLepMapinpute <- function(pedfaminfo,genoplinkped,minfamsize=7,outname){
   cat('\n')
   cat('.... Completed enjoy LepMAPing .... \n')
   cat('\n')
-  
+  timedatend <- paste('... started ... ',date(),sep='')
+  cat(timedatstr,'\n',timedatend,'\n\n')
   cat('@--------------------------------------------------------@\n')
   cat('@                                                        @\n')
   cat('@                Created by S.A. Boison ::: May 10, 2016 @\n')
