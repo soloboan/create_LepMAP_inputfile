@@ -9,9 +9,9 @@
 #-------------------------------------------------------------------------------------------------#
 
 # running the script
-source('createLepMapinpute_win3264.R')
-createLepMapinpute(pedfaminfo='Examplefiles/Ex2_10K.fam',genoplinkped='Examplefiles/Ex2_10K.ped',
-                   outname='Examplefiles/Ex2LepMap')
+source('scripts/createLepMapinpute_win3264.R')
+createLepMapinpute(pedfaminfo='Ex2_10K.fam',genoplinkped='Ex2_10K.ped',
+                   outname='Ex2LepMap')
 
 #directly running on the command line in linux
 ./createLepMapinpute.R Examplefiles/Ex2_10K.fam Examplefiles/Ex2_10K.ped Examplefiles/Ex2LepMap

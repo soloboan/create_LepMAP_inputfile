@@ -12,6 +12,7 @@ if("help" %in% args){
       ---- 3 Arguments are needed 
       1.pedfaminfo     == The fam file from PLINK
       2.genoplinkped   == The genotype data in PLINK ped format
+      3.minfamsize     == minimum family size
       3.outname        == The output file name (only prefix)
       
       how to run the program
@@ -23,9 +24,9 @@ if("help" %in% args){
   q(save="no")
 }
 
-createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=args[3]){
+createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsize=args[3],outname=args[4]){
   cat('\n')
-  cat('\n')
+  minfamsize=7
   pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
   cat('.... FAM file with pedigree information imported .... \n')
   
@@ -38,41 +39,45 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
   if(hmdams>0){DumDams <- paste('DumD',1:hmdams,sep='')}
   
   if(hmsires>0 & hmdams>0){
-    dumped <- data.frame(IID=c(DumSires,DumDams))
+    dumped <- data.frame(IID=c(DumSires,DumDams),stringsAsFactors=F)
     dumped <- cbind.data.frame(dumped,dumped,0,0,0,0)
     colnames(dumped) <- c('FIID','IID','Sire','Dam','Sex','Pheno')
-    pedi <- rbind.data.frame(dumped,pedi)
+    pedi <- rbind.data.frame(dumped,pedi,stringsAsFactors=F)
     pedi[which(pedi$Sire==0 & pedi$Dam!=0),'Sire'] <- DumSires
     pedi[which(pedi$Sire!=0 & pedi$Dam==0),'Dam'] <- DumDams
   } else if(hmsires>0 & hmdams<1){
-    dumped <- data.frame(IID=DumSires)
+    dumped <- data.frame(IID=DumSires,stringsAsFactors=F)
     dumped <- cbind.data.frame(dumped,dumped,0,0,0,0)
     colnames(dumped) <- c('FIID','IID','Sire','Dam','Sex','Pheno')
-    pedi <- rbind.data.frame(dumped,pedi)
+    pedi <- rbind.data.frame(dumped,pedi,stringsAsFactors=F)
     pedi[which(pedi$Sire==0 & pedi$Dam!=0),'Sire'] <- DumSires
   } else if(hmsires<1 & hmdams>0){
-    dumped <- data.frame(IID=DumDams)
+    dumped <- data.frame(IID=DumDams,stringsAsFactors=F)
     dumped <- cbind.data.frame(dumped,dumped,0,0,0,0)
     colnames(dumped) <- c('FIID','IID','Sire','Dam','Sex','Pheno')
-    pedi <- rbind.data.frame(dumped,pedi)
+    pedi <- rbind.data.frame(dumped,pedi,stringsAsFactors=F)
     pedi[which(pedi$Sire!=0 & pedi$Dam==0),'Dam'] <- DumDams
   }
   
   offsprings <- pedi[which(pedi$Sire!=0 & pedi$Dam!=0),]
-  sires <- sort(unique(offsprings$Sire)); dams <- sort(unique(offsprings$Dam))
+  sires <- sort(unique(offsprings$Sire))
+  dams <- sort(unique(offsprings$Dam))
   offsprings$famID <-  paste(offsprings$Sire,'><',offsprings$Dam,sep='')
   
-  
-  famILY <- data.frame(FSFAM=sort(table(offsprings$famID)))
-  famILY <- data.frame(FSFAM=famILY[which(famILY$FSFAM>=5),])
+  famILY <- data.frame(sort(table(offsprings$famID)),stringsAsFactors=F)
+  colnames(famILY) <- c('famID','FSFAM')
+  famILY$famID <- as.vector(famILY$famID)
+  famILY <- famILY[which(famILY$FSFAM>=minNfam),]
   famILY$Sire <- paste('S000',1:nrow(famILY),sep='')
   famILY$Dam <- paste('D000',1:nrow(famILY),sep='')
-  famILY$famID <- rownames(famILY)
   famILY$famIDnr <- 1:nrow(famILY)
-  famILY$sireL <- apply(data.frame(famILY$famID),1,function(x)unlist(strsplit(x,split='><'))[1])
-  famILY$damL <- apply(data.frame(famILY$famID),1,function(x)unlist(strsplit(x,split='><'))[2])
+  famILY$sireL <- apply(data.frame(famILY$famID,stringsAsFactors=F),
+                        1,function(x)unlist(strsplit(x,split='><'))[1])
+  famILY$damL <- apply(data.frame(famILY$famID,stringsAsFactors=F),
+                       1,function(x)unlist(strsplit(x,split='><'))[2])
   
-  offsprings <- merge(offsprings,data.frame(famILY$famID),by.x='famID',by.y=1)
+  offsprings <- merge(offsprings,data.frame(famILY$famID,stringsAsFactors=F),
+                      by.x='famID',by.y=1)
   
   offsprings.ped <- matrix(0,nrow=nrow(offsprings),ncol=8)
   colnames(offsprings.ped) <- c('FIID','IID','Sire','Dam','Sex','oldSire','oldDAM','oldIID')
@@ -91,7 +96,7 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
   
   parent.ped <- matrix(0,nrow=nrow(famILY)*2,ncol=6)
   colnames(parent.ped) <- c('FIID','IID','Sire','Dam','Sex','oldIID')
-  parent <- data.frame(IID=c(famILY$Sire,famILY$Dam))
+  parent <- data.frame(IID=c(famILY$Sire,famILY$Dam),stringsAsFactors=F)
   parent$Sex <- c(rep('1',length(famILY$Sire)),rep('2',length(famILY$Dam)))
   parent$famIDnr <- c(famILY$famIDnr,famILY$famIDnr)
   parent$famID <- c(famILY$famID,famILY$famID)
@@ -109,22 +114,23 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
     parent.ped[j,c('oldIID')] <- as.vector(getoldid)
   }
   
-  parentoffsring <- rbind.data.frame(parent.ped,offsprings.ped[,c(1:5,8)])
+  parentoffsring <- rbind.data.frame(parent.ped,offsprings.ped[,c(1:5,8)],stringsAsFactors=F)
   parentoffsring <- parentoffsring[order(as.numeric(as.vector(parentoffsring$FIID))),]
-  IIDs <- data.frame(IID=unique(parentoffsring$oldIID))
+  IIDs <- data.frame(IID=unique(parentoffsring$oldIID),stringsAsFactors = F)
   cat('.... Data editing on FAM (pedigree information) done .... \n')
   
   cat('.... importing genotype data (PLINK ped file format) .... \n')
-  genodata <- read.table(paste(genoplinkped),stringsAsFactors = F)
+  genodata <- read.table(paste(genoplinkped),stringsAsFactors=F)
   
   cat('.... Genotypes (PLINK ped file format) imported .... \n')
-  genoiid <- data.frame(IID=genodata[,2]); genoiid$nr <- 1:nrow(genoiid)
+  genoiid <- data.frame(IID=genodata[,2],stringsAsFactors=F)
+  genoiid$nr <- 1:nrow(genoiid)
   
   genodata <- merge(IIDs,genodata,by.x=1,by.y=2)
   genoiid <- merge(genoiid,IIDs,by.x=1,by.y=1)
   
   ### check for familes with both parents missing
-  exclfam <- data.frame(famExcl=character())
+  exclfam <- data.frame(famExcl=character(),stringsAsFactors=F)
   for (s in as.vector(unique(parentoffsring$FIID))){
     famgeno <- parentoffsring[which(parentoffsring$FIID==s),]
     famgeno <- famgeno[which(famgeno$Sire==0 & famgeno$Dam==0),]
@@ -135,7 +141,7 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
   }
   
   if(nrow(exclfam)>0){
-    parentoffsring <- parentoffsring[ ! parentoffsring$FIID %in% exclfam$famExcl,]
+    parentoffsring <- parentoffsring[!parentoffsring$FIID %in% exclfam$famExcl,]
   }
   #######
   
@@ -144,10 +150,10 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
   cat('.... Note : This might take a while .... \n')
   cat('\n')
   
-  genofile <- data.frame(matrix(0,nrow(parentoffsring),ncol(genodata)))
+  genofile <- data.frame(matrix(0,nrow(parentoffsring),ncol(genodata)),stringsAsFactors=F)
   iterchecks.anim <- round(nrow(genofile)/10,digits=0)
   for(m in 1:nrow(parentoffsring)){
-    anim <- data.frame(IID=as.vector(parentoffsring[m,c('oldIID')]))
+    anim <- data.frame(IID=as.vector(parentoffsring[m,c('oldIID')]),stringsAsFactors = F)
     anim.dat <- merge(anim,genoiid,by=1)
     if(nrow(anim.dat)==0){
       genofile[m,1] <- as.vector(parentoffsring[m,1])
@@ -197,6 +203,7 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],outname=a
   cat('@                Created by S.A. Boison ::: May 10, 2016 @\n')
   cat('@               please report bugs to soloboan@yahoo.com @\n')
   cat('@--------------------------------------------------------@\n')
+  
 }
 
-createLepMapinpute(pedfaminfo=args[1],genoplinkped=args[2],outname=args[3])
+createLepMapinpute(pedfaminfo=args[1],genoplinkped=args[2],minfamsize=args[3],outname=args[4])
