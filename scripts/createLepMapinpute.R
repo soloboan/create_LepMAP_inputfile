@@ -4,19 +4,19 @@
 args <- commandArgs(TRUE)
 
 ## Default setting when no arguments passed
-if(length(args)<1 | length(args)<3) {args <- c("help")}
+if(length(args)<1 | length(args)<4) {args <- c("help")}
 
 ## Help section
 if("help" %in% args){
   cat("
-      ---- 3 Arguments are needed 
+      ---- 4 Arguments are needed 
       1.pedfaminfo     == The fam file from PLINK
       2.genoplinkped   == The genotype data in PLINK ped format
       3.minfamsize     == minimum family size
       4.outname        == The output file name (only prefix)
       
       how to run the program
-      Example: ./createLepMapinpute geno.fam geno.ped outlepmap
+      Example: ./createLepMapinpute geno.fam geno.ped 5 outlepmap
       
       ---- 2 output files 
       'prefix.oldids'   -- This is the recoded Ids and correspoding oldids
