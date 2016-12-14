@@ -12,8 +12,8 @@ Note:: The script can handle multi-generation data with overlapping generations.
 #### The script requires 4 Arguments  
 - 1. pedfaminfo     == The fam file from PLINK this file can be generated with –-make-bed and should contain the pedigree information  
 - 2. genoplinkped   == The genotype data in PLINK ped format, can be generated with –-recode  
-- 4. minfamsize     == The minum family size 
-- 3. outname        == The output file name (only prefix)
+- 3. minfamsize     == The minum family size 
+- 4. outname        == The output file name (only prefix)
 
 ### how to run the “createLepMapinpute_win3264.R ” file in R
 open R either in windows or linux and then source the script and use the function to generate the LepMap file as below  
