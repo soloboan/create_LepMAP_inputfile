@@ -25,9 +25,8 @@ if("help" %in% args){
 }
 
 createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsize=args[3],outname=args[4]){
-  timedatstr <- paste('... started ... ',date(),sep='')
+ timedatstr <- paste('... started ... ',date(),sep='')
   cat('\n')
-  minfamsize=7
   pedi <- read.table(paste(pedfaminfo,sep=''),header=F,stringsAsFactors=F)
   cat('.... FAM file with pedigree information imported .... \n')
   
@@ -64,11 +63,11 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsiz
   sires <- sort(unique(offsprings$Sire))
   dams <- sort(unique(offsprings$Dam))
   offsprings$famID <-  paste(offsprings$Sire,'><',offsprings$Dam,sep='')
-  
+
   famILY <- data.frame(sort(table(offsprings$famID)),stringsAsFactors=F)
   colnames(famILY) <- c('famID','FSFAM')
   famILY$famID <- as.vector(famILY$famID)
-  famILY <- famILY[which(famILY$FSFAM>=minNfam),]
+  famILY <- famILY[which(famILY$FSFAM>=minfamsize),]
   famILY$Sire <- paste('S000',1:nrow(famILY),sep='')
   famILY$Dam <- paste('D000',1:nrow(famILY),sep='')
   famILY$famIDnr <- 1:nrow(famILY)
@@ -122,7 +121,7 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsiz
   
   cat('.... importing genotype data (PLINK ped file format) .... \n')
   genodata <- read.table(paste(genoplinkped),stringsAsFactors=F)
-  
+
   cat('.... Genotypes (PLINK ped file format) imported .... \n')
   genoiid <- data.frame(IID=genodata[,2],stringsAsFactors=F)
   genoiid$nr <- 1:nrow(genoiid)
@@ -198,15 +197,13 @@ createLepMapinpute <- function(pedfaminfo=args[1],genoplinkped=args[2],minfamsiz
   cat('\n')
   cat('.... Completed enjoy LepMAPing .... \n')
   cat('\n')
-
   timedatend <- paste('... started ... ',date(),sep='')
   cat(timedatstr,'\n',timedatend,'\n\n')
   cat('@--------------------------------------------------------@\n')
   cat('@                                                        @\n')
   cat('@                Created by S.A. Boison ::: May 10, 2016 @\n')
   cat('@               please report bugs to soloboan@yahoo.com @\n')
-  cat('@--------------------------------------------------------@\n')
-  
+  cat('@--------------------------------------------------------@\n')  
 }
 
 createLepMapinpute(pedfaminfo=args[1],genoplinkped=args[2],minfamsize=args[3],outname=args[4])
